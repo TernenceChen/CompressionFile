@@ -1,9 +1,5 @@
 # CompressionFile
 > CompressionFile consists of decompression and compression file.
->
-> set the compression file by MainActivity#COMPRESS_SRC_FILE, 
->
-> set the decompression file by MainActivity#COMPRESS_DEST_FILE
 
 ## 2020.01.01  First commit
 
