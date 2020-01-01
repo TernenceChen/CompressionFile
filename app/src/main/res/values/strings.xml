@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CompressionFile</string>
+    <string name="compress_file">Compress File</string>
+    <string name="decompress_file">Decompress File</string>
+</resources>
