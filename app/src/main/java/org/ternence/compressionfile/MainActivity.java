@@ -113,10 +113,15 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             try {
-                ZipUtils.zipFiles(srcFiles, mDestFile);
+                Log.i(TAG, "COMPRESS_SRC_FILE: " + COMPRESS_SRC_FILE);
+                TarUtils.archive(new File(COMPRESS_SRC_FILE), new File(ROOT_PATH + File.separator + "111.tar"));
+//                ZipUtils.zipFiles(srcFiles, mDestFile);
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils zipFiles has a exception: " + e);
                 e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e(TAG, "TarUtils archive has a exception: " + e);
             }
         }
     }
@@ -126,9 +131,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             try {
-                ZipUtils.unzipFile(mDestFile, mSrcFile);
+//                ZipUtils.unzipFile(mDestFile, mSrcFile);
+                Log.i(TAG, "Dest File: " + (ROOT_PATH + File.separator + "111.tar"));
+                TarUtils.dearchive(new File(ROOT_PATH + File.separator + "111.tar"), new File(ROOT_PATH + File.separator));
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils unZipFiles has a exception: " + e);
+                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e(TAG, "TarUtils deArchive has a exception: " + e);
                 e.printStackTrace();
             }
         }

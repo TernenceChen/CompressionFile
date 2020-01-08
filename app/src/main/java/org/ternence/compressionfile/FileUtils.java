@@ -1,7 +1,5 @@
 package org.ternence.compressionfile;
 
-import android.util.Log;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
