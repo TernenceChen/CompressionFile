@@ -2,6 +2,8 @@ package org.ternence.compressionfile;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -284,13 +286,54 @@ public class FileUtils {
     }
 
     private static boolean isSpace(final String s) {
-        if (s == null) return true;
+        if (s == null) {
+            return true;
+        }
         for (int i = 0, len = s.length(); i < len; ++i) {
             if (!Character.isWhitespace(s.charAt(i))) {
                 return false;
             }
         }
         return true;
+    }
+
+    public static long sizeOfDirectory0(File directory) {
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return 0L;
+        } else {
+            long size = 0L;
+            File[] var4 = files;
+            int var5 = files.length;
+
+            for(int var6 = 0; var6 < var5; ++var6) {
+                File file = var4[var6];
+
+                try {
+                    if (!isSymlink(file)) {
+                        size += sizeOf0(file);
+                        if (size < 0L) {
+                            break;
+                        }
+                    }
+                } catch (IOException var9) {
+                }
+            }
+
+            return size;
+        }
+    }
+
+    private static long sizeOf0(File file) {
+        return file.isDirectory() ? sizeOfDirectory0(file) : file.length();
+    }
+
+    public static boolean isSymlink(File file) throws IOException {
+        if (file == null) {
+            throw new NullPointerException("File must not be null");
+        } else {
+            return Files.isSymbolicLink(file.toPath());
+        }
     }
 
 }

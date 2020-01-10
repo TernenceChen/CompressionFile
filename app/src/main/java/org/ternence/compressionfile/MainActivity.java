@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     static {
         ROOT_PATH = Environment.getExternalStorageDirectory().getPath();
-        COMPRESS_SRC_FILE = ROOT_PATH + File.separator + "11" + File.separator;
+        COMPRESS_SRC_FILE = ROOT_PATH + File.separator + "tencent" + File.separator;
         COMPRESS_DEST_FILE = ROOT_PATH + File.separator + "111" + File.separator + "copy.zip";
     }
 
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<File> loadFiles(String dirPath) {
         Log.i(TAG, "LoadFiles: " + dirPath);
-        return FileUtils.listFilesInDir(dirPath, true);
+        return FileUtils.listFilesInDir(dirPath, false);
     }
 
     public class CompressFile {
@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             try {
                 Log.i(TAG, "COMPRESS_SRC_FILE: " + COMPRESS_SRC_FILE);
-                TarUtils.archive(new File(COMPRESS_SRC_FILE), new File(ROOT_PATH + File.separator + "111.tar"));
+                doTar(new File(COMPRESS_SRC_FILE), ROOT_PATH);
 //                ZipUtils.zipFiles(srcFiles, mDestFile);
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils zipFiles has a exception: " + e);
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
             try {
 //                ZipUtils.unzipFile(mDestFile, mSrcFile);
                 Log.i(TAG, "Dest File: " + (ROOT_PATH + File.separator + "111.tar"));
-                TarUtils.dearchive(new File(ROOT_PATH + File.separator + "111.tar"), new File(ROOT_PATH + File.separator));
+                TarUtils.dearchive(new File(ROOT_PATH + File.separator+ "aa" + File.separator + "111.tar"), new File(ROOT_PATH + File.separator + "aaa"));
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils unZipFiles has a exception: " + e);
                 e.printStackTrace();
@@ -141,6 +141,31 @@ public class MainActivity extends AppCompatActivity {
                 Log.e(TAG, "TarUtils deArchive has a exception: " + e);
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void doTar(File rootFile, String rootPath) throws Exception{
+        Log.i(TAG, "COMPRESS_SRC_FILE: " + rootPath);
+        File[] files = rootFile.listFiles();
+        for (File file : files) {
+            long startTime = System.currentTimeMillis();
+            long filesize = FileUtils.sizeOfDirectory0(file);
+            Log.i(TAG, "File name: " + file.getPath() + "  File size: " + filesize + (filesize < 500 * 1024 * 1024));
+//            if (filesize < 500 * 1024 * 1024) {
+//            File destFile = new File(ROOT_PATH + File.separator + "aa" + rootPath);
+            String folderPath = file.getAbsolutePath().replace(ROOT_PATH, "");
+            File destFile = new File(ROOT_PATH + File.separator + "aa");
+            if (!destFile.exists()) {
+                destFile.mkdirs();
+            }
+            Log.i(TAG, "destFile Path: " + (ROOT_PATH + File.separator + "aa" + folderPath + ".tar"));
+            TarUtils.archive(file, ROOT_PATH + File.separator + "aa"+ folderPath + ".tar");
+//            } else {
+//                String folderPath = file.getAbsolutePath().replace(ROOT_PATH, "");
+//                Log.i(TAG, "Do Tar File path: " + folderPath);
+//                doTar(file, folderPath);
+//            }
+            Log.i(TAG, "Speed Time: " + (System.currentTimeMillis() - startTime));
         }
     }
 

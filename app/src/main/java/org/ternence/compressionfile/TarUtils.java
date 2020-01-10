@@ -10,13 +10,13 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
-public abstract class TarUtils {
+public class TarUtils {
 
     private static final String BASE_DIR = "";
 
     // 符号"/"用来作为目录标识判断符
     private static final String PATH = "/";
-    private static final int BUFFER = 1024;
+    private static final int BUFFER = 2048;
 
     private static final String EXT = ".tar";
 
@@ -49,6 +49,7 @@ public abstract class TarUtils {
 
         TarArchiveOutputStream taos = new TarArchiveOutputStream(
                 new FileOutputStream(destFile));
+        taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
 
         archive(srcFile, taos, BASE_DIR);
 
