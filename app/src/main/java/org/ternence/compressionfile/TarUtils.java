@@ -1,5 +1,7 @@
 package org.ternence.compressionfile;
 
+import android.util.Log;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -10,11 +12,18 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.BIGNUMBER_POSIX;
+import static org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_GNU;
+
 public class TarUtils {
+
+    private static final String TAG = "TarUtils";
 
     private static final String BASE_DIR = "";
 
-    // 符号"/"用来作为目录标识判断符
+    /**
+     * 符号"/"用来作为目录标识判断符
+     */
     private static final String PATH = "/";
     private static final int BUFFER = 2048;
 
@@ -170,8 +179,12 @@ public class TarUtils {
         TarArchiveEntry entry = new TarArchiveEntry(dir + file.getName());
 
         entry.setSize(file.length());
+        Log.i(TAG, "archiveFile modified: " + file.lastModified());
+        entry.setModTime(file.lastModified());
 
         taos.putArchiveEntry(entry);
+        taos.setLongFileMode(LONGFILE_GNU);
+        taos.setBigNumberMode(BIGNUMBER_POSIX);
 
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(
                 file));
@@ -305,6 +318,8 @@ public class TarUtils {
         BufferedOutputStream bos = new BufferedOutputStream(
                 new FileOutputStream(destFile));
 
+        TarArchiveEntry entry = tais.getCurrentEntry();
+        Log.i(TAG, "DeArchiveFile Last Modified Time: " + entry.getModTime().getTime());
         int count;
         byte data[] = new byte[BUFFER];
         while ((count = tais.read(data, 0, BUFFER)) != -1) {

@@ -1,5 +1,7 @@
 package org.ternence.compressionfile;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -19,6 +21,29 @@ public class FileUtils {
      */
     public static File getFileByPath(final String filePath) {
         return isSpace(filePath) ? null : new File(filePath);
+    }
+
+    public static int fileSizeInDir(final String dirPath, final boolean isExcludeDir, final boolean isRecursive) {
+        return fileSizeInDir(new File(dirPath), isExcludeDir, isRecursive);
+    }
+
+    public static int fileSizeInDir(final File dirPath, final boolean isExcludeDir, final boolean isRecursive) {
+        int fileSize = 0;
+        List<File> files = listFilesInDir(dirPath, isRecursive);
+        if (files == null) {
+            return 0;
+        }
+
+        if (!isExcludeDir) {
+            for (File file : files) {
+                if (!file.isDirectory()) {
+                    fileSize ++;
+                }
+            }
+        } else {
+            return files.size();
+        }
+        return fileSize;
     }
 
     /**

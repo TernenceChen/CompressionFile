@@ -8,7 +8,9 @@ import androidx.databinding.DataBindingUtil;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -80,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
 
     private List<File> loadFiles(String dirPath) {
         Log.i(TAG, "LoadFiles: " + dirPath);
+        int fileSize = FileUtils.fileSizeInDir(dirPath, false, true);
+        Log.i(TAG, "File Size: " + fileSize);
         return FileUtils.listFilesInDir(dirPath, false);
     }
 
@@ -125,8 +129,9 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             try {
                 Log.i(TAG, "COMPRESS_SRC_FILE: " + COMPRESS_SRC_FILE);
-                doTar(new File(COMPRESS_SRC_FILE), ROOT_PATH);
+//                doTar(new File(COMPRESS_SRC_FILE), ROOT_PATH);
 //                ZipUtils.zipFiles(srcFiles, mDestFile);
+                TarUtils.archive(new File(ROOT_PATH + File.separator + "aa"), ROOT_PATH + File.separator + "aaaa" + File.separator + "111.tar");
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils zipFiles has a exception: " + e);
                 e.printStackTrace();
@@ -144,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
             try {
 //                ZipUtils.unzipFile(mDestFile, mSrcFile);
                 Log.i(TAG, "Dest File: " + (ROOT_PATH + File.separator + "111.tar"));
-                TarUtils.dearchive(new File(ROOT_PATH + File.separator+ "aa" + File.separator + "111.tar"), new File(ROOT_PATH + File.separator + "aaa"));
+                TarUtils.dearchive(new File(ROOT_PATH + File.separator+ "aaaa" + File.separator + "111.tar"), new File(ROOT_PATH + File.separator + "aaa"));
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils unZipFiles has a exception: " + e);
                 e.printStackTrace();
