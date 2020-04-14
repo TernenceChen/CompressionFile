@@ -16,16 +16,30 @@ import android.content.pm.PackageManager;
 
 import androidx.core.content.ContextCompat;
 
+/**
+ * This class provides a way to perform Bluetooth LE advertise operations
+ *
+ * @author ternence.c@gmail.com
+ */
 public class BleUtils {
 
     private static final String TAG = BleUtils.class.getSimpleName();
+
+    /**
+     * The device is capable of communicating with other devices via Bluetooth Low Energy radio.
+     *
+     * @return true if the device supports Bluetooth Low Energy radio
+     */
+    public static boolean isSupportBle(Context context) {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+    }
 
     /**
      * Return true if Bluetooth is currently enabled and ready for use.
      *
      * @return true if the local adapter is turned on
      */
-    public static boolean isOpen(BluetoothAdapter adapter) {
+    private static boolean isOpen(BluetoothAdapter adapter) {
         if (null != adapter) {
             return adapter.isEnabled();
         }
@@ -114,14 +128,63 @@ public class BleUtils {
         }
     }
 
-    public static void startAdvertise(BluetoothLeAdvertiser advertiser,
+    /**
+     * Start Advertise
+     *
+     * @param advertiseSettings Advertise settings includes advertise mode {@link AdvertiseSettings.Builder#setAdvertiseMode(int)},
+     *                          TX power level {@link AdvertiseSettings.Builder#setTxPowerLevel(int)},
+     *                          timeout {@link AdvertiseSettings.Builder#setTimeout(int)},
+     *                          connect status {@link AdvertiseSettings.Builder#setConnectable(boolean)
+     * @param advertiseData     Advertise data packet container for Bluetooth LE advertising.
+     * @param advertiseCallback Bluetooth LE advertising callbacks, used to deliver advertising operation status.
+     */
+    public static void startAdvertise(BluetoothAdapter adapter,
                                       AdvertiseSettings advertiseSettings,
                                       AdvertiseData advertiseData,
-                                      AdvertiseCallback advertiseCallback) {
-        if (null != advertiser) {
-            advertiser.startAdvertising();
+                                      AdvertiseCallback advertiseCallback) throws IllegalStateException {
+        if (isOpen(adapter)) {
+            BluetoothLeAdvertiser advertiser = adapter.getBluetoothLeAdvertiser();
+            if (null != advertiser) {
+                advertiser.startAdvertising(advertiseSettings, advertiseData, advertiseCallback);
+            }
         }
     }
 
+    /**
+     * Start Advertise
+     *
+     * @param advertiseSettings Advertise settings includes advertise mode {@link AdvertiseSettings.Builder#setAdvertiseMode(int)},
+     *                          TX power level {@link AdvertiseSettings.Builder#setTxPowerLevel(int)},
+     *                          timeout {@link AdvertiseSettings.Builder#setTimeout(int)},
+     *                          connect status {@link AdvertiseSettings.Builder#setConnectable(boolean)
+     * @param advertiseData     Advertise data packet container for Bluetooth LE advertising.
+     * @param scanResponseData  Scan response associated with the advertisement data.
+     * @param advertiseCallback Bluetooth LE advertising callbacks, used to deliver advertising operation status.
+     */
+    public static void startAdvertise(BluetoothAdapter adapter,
+                                      AdvertiseSettings advertiseSettings,
+                                      AdvertiseData advertiseData,
+                                      AdvertiseData scanResponseData,
+                                      AdvertiseCallback advertiseCallback) throws IllegalStateException {
+        if (isOpen(adapter)) {
+            BluetoothLeAdvertiser advertiser = adapter.getBluetoothLeAdvertiser();
+            if (null != advertiser) {
+                advertiser.startAdvertising(advertiseSettings, advertiseData, scanResponseData, advertiseCallback);
+            }
+        }
+    }
 
+    /**
+     * Stop Bluetooth LE advertising.
+     *
+     * @param advertiseCallback {@link AdvertiseCallback} identifies the advertising instance to stop.
+     */
+    public static void stopAdvertise(BluetoothAdapter adapter, AdvertiseCallback advertiseCallback) throws IllegalStateException {
+        if (isOpen(adapter)) {
+            BluetoothLeAdvertiser bluetoothLeAdvertiser = adapter.getBluetoothLeAdvertiser();
+            if (null != bluetoothLeAdvertiser) {
+                bluetoothLeAdvertiser.stopAdvertising(advertiseCallback);
+            }
+        }
+    }
 }
