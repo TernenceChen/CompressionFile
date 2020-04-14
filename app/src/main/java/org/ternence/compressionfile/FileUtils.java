@@ -30,7 +30,7 @@ public class FileUtils {
     public static int fileSizeInDir(final File dirPath, final boolean isExcludeDir, final boolean isRecursive) {
         int fileSize = 0;
         List<File> files = listFilesInDir(dirPath, isRecursive);
-        if (files == null) {
+        if (files.size() == 0) {
             return 0;
         }
 

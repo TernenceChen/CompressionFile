@@ -7,8 +7,10 @@ import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +20,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import org.ternence.compressionfile.databinding.ActivityMainBinding;
+import org.ternence.compressionfile.receiver.BatteryReceiver;
+import org.ternence.compressionfile.utils.CalendarUtils;
+import org.ternence.compressionfile.utils.FilesUtils;
+import org.ternence.compressionfile.utils.WifiUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,24 +36,28 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private static final String TAG_TEST = "MainActivity Test";
     private static final String COMPRESS_SRC_FILE;
     private static final String COMPRESS_DEST_FILE;
     private static final String ROOT_PATH;
     private Collection<File> srcFiles = new ArrayList<>();
     private File mSrcFile;
     private File mDestFile;
+    private AtomicInteger mMsgCount = new AtomicInteger();
 
     private ExecutorService mArchiveFilesExecutor;
     private static final int MAX_BATCH_FILES = 5;
     private static final int MAX_CHECK_THREADS = 6;
+    private BluetoothAdapter bluetoothAdapter;
 
     static {
         ROOT_PATH = Environment.getExternalStorageDirectory().getPath();
-        COMPRESS_SRC_FILE = ROOT_PATH + File.separator + "aa" + File.separator;
+        COMPRESS_SRC_FILE = ROOT_PATH + File.separator + "Android" + File.separator /*+ "MicroMsg" + File.separator*/;
         COMPRESS_DEST_FILE = ROOT_PATH + File.separator + "111" + File.separator + "copy.zip";
     }
 
@@ -59,48 +69,66 @@ public class MainActivity extends AppCompatActivity {
         mDestFile = ZipUtils.getFileByPath(COMPRESS_DEST_FILE);
         ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         binding.setCompressFile(new CompressFile());
-        if (isStoragePermissionGranted()) {
-            new Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    Log.i(TAG, "LoadFiles");
-                    List<File> files = loadFiles(COMPRESS_SRC_FILE);
-                    if (files == null) {
-                        Log.i(TAG, "LoadFiles is null");
-                        return;
-                    }
-                    for (File file : files) {
-                        Log.i(TAG, "file name: " + file.getAbsolutePath());
-                        srcFiles.add(file);
-                    }
-                    Log.i(TAG, "SrcFile size: " + srcFiles.size());
-
-                }
-            });
-        }
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        Log.i(TAG, "isSupport5GBand: " + WifiUtils.isSupport5GBand(this));
+//        File file = new File(COMPRESS_SRC_FILE);
+//        File[] fileList = file.listFiles();
+//        for (File file1 : fileList) {
+//            String fileName = file1.getName();
+//            fileName = fileName.replace("push_Log", "");
+//            fileName = fileName.replace(".txt", "");
+//            Log.i(TAG, "FIleNAme: " + fileName);
+//            Log.i(TAG, "FileList: " + file1.getName());
+//
+//        }
+//        if (isStoragePermissionGranted()) {
+//            new Handler().post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Log.i(TAG, "LoadFiles");
+//                    List<File> files = loadFiles(COMPRESS_SRC_FILE);
+//                    if (files.size() == 0) {
+//                        Log.i(TAG_TEST, "LoadFiles is null");
+//                        return;
+//                    }
+//                    for (File file : files) {
+//                        Log.i(TAG_TEST, "file name: " + file.getName());
+//                        srcFiles.add(file);
+//                    }
+//                    Log.i(TAG_TEST, "SrcFile size: " + srcFiles.size());
+//
+//                }
+//            });
+//        }
     }
 
     private List<File> loadFiles(String dirPath) {
-        Log.i(TAG, "LoadFiles: " + dirPath);
+        Log.i(TAG_TEST, "LoadFiles: " + dirPath);
         int fileSize = FileUtils.fileSizeInDir(dirPath, false, true);
-        Log.i(TAG, "File Size: " + fileSize);
-        return FileUtils.listFilesInDir(dirPath, false);
+        Log.i(TAG_TEST, "File Size: " + fileSize);
+        return FileUtils.listFilesInDir(dirPath, true);
     }
 
     public class CompressFile {
 
         public void doCompressFiles() {
-            CompressFileRunnable runnable = new CompressFileRunnable();
-            Thread thread = new Thread(runnable);
-            thread.start();
-            Toast.makeText(MainActivity.this, "doCompressFiles", Toast.LENGTH_SHORT).show();
+            bluetoothAdapter.disable();
+            scan();
+            CalendarUtils.openCalendar(MainActivity.this);
+//            CompressFileRunnable runnable = new CompressFileRunnable();
+//            Thread thread = new Thread(runnable);
+//            thread.start();
+//            Toast.makeText(MainActivity.this, "doCompressFiles", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "doCompressFiles MsgCount: " + mMsgCount.get());
         }
 
         public void doDecompressFiles() {
-            DecompressFileRunnable runnable = new DecompressFileRunnable();
-            Thread thread = new Thread(runnable);
-            thread.start();
-            Toast.makeText(MainActivity.this, "doDecompressFiles", Toast.LENGTH_SHORT).show();
+            bluetoothAdapter.enable();
+            Log.i(TAG, "doDecompressFiles MsgCount: " + mMsgCount.get());
+//            DecompressFileRunnable runnable = new DecompressFileRunnable();
+//            Thread thread = new Thread(runnable);
+//            thread.start();
+//            Toast.makeText(MainActivity.this, "doDecompressFiles", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -123,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class CompressFileRunnable implements Runnable {
+    private static class CompressFileRunnable implements Runnable {
 
         @Override
         public void run() {
@@ -131,7 +159,21 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "COMPRESS_SRC_FILE: " + COMPRESS_SRC_FILE);
 //                doTar(new File(COMPRESS_SRC_FILE), ROOT_PATH);
 //                ZipUtils.zipFiles(srcFiles, mDestFile);
-                TarUtils.archive(new File(ROOT_PATH + File.separator + "aa"), ROOT_PATH + File.separator + "aaaa" + File.separator + "111.tar");
+                File destFile = new File(ROOT_PATH + File.separator + "tencent" + File.separator + "MicroMsg");
+                if (!destFile.exists()) {
+                    destFile.mkdirs();
+                }
+                File[] destFiles = destFile.listFiles();
+                if (destFiles != null) {
+                    for (File file : destFiles) {
+                        String srcFiles = ROOT_PATH + File.separator + "aaaa" + File.separator + file.getName() + File.separator + "111.tar";
+                        File srcFile = new File(ROOT_PATH + File.separator + "aaaa" + File.separator + file.getName());
+                        if (!srcFile.exists()) {
+                            srcFile.mkdirs();
+                            TarUtils.archive(file, srcFiles);
+                        }
+                    }
+                }
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils zipFiles has a exception: " + e);
                 e.printStackTrace();
@@ -142,14 +184,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class DecompressFileRunnable implements Runnable {
+    private static class DecompressFileRunnable implements Runnable {
 
         @Override
         public void run() {
             try {
 //                ZipUtils.unzipFile(mDestFile, mSrcFile);
                 Log.i(TAG, "Dest File: " + (ROOT_PATH + File.separator + "111.tar"));
-                TarUtils.dearchive(new File(ROOT_PATH + File.separator+ "aaaa" + File.separator + "111.tar"), new File(ROOT_PATH + File.separator + "aaa"));
+                File srcFile = new File(ROOT_PATH + File.separator + "aaaaa");
+                if (!srcFile.exists()) {
+                    srcFile.mkdirs();
+                }
+                TarUtils.dearchive(new File(ROOT_PATH + File.separator+ "aaaa" + File.separator + "111.tar"), new File(ROOT_PATH + File.separator + "aaaaa"));
             } catch (IOException e) {
                 Log.e(TAG, "ZipUtils unZipFiles has a exception: " + e);
                 e.printStackTrace();
@@ -276,6 +322,60 @@ public class MainActivity extends AppCompatActivity {
                 invalidList.add(file);
             }
             return invalidList;
+        }
+    }
+
+    private void scan() {
+        File[] storageDirs = FilesUtils.getExternalDirs();
+        if (storageDirs != null && storageDirs.length > 0) {
+            String storageDir;
+            for (int i = 0; i < storageDirs.length; i++) {
+                storageDir = storageDirs[i].getAbsolutePath();
+                Log.i(TAG, "scan storage directory : " + storageDir);
+                scanningPackage(storageDir);
+            }
+        }
+    }
+
+    private void scanningPackage(String path) {
+        long size = FilesUtils.getPackageDataPath(path);
+        Log.i(TAG, "Scanning Package: " + size);
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver();
+        Log.i(TAG, "onPause");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver();
+        Log.i(TAG, "onDestroy");
+    }
+
+    private BatteryReceiver mReceiver;
+
+    private void registerReceiver() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        mReceiver = new BatteryReceiver();
+        registerReceiver(mReceiver, filter);
+    }
+
+    private void unregisterReceiver() {
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
+            mReceiver = null;
         }
     }
 }

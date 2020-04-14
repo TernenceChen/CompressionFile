@@ -1,7 +1,5 @@
 package org.ternence.compressionfile;
 
-import android.util.Log;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -137,11 +135,11 @@ public class TarUtils {
         File[] files = dir.listFiles();
 
         if (files.length < 1) {
-            TarArchiveEntry entry = new TarArchiveEntry(basePath
-                    + dir.getName() + PATH);
-
-            taos.putArchiveEntry(entry);
-            taos.closeArchiveEntry();
+//            TarArchiveEntry entry = new TarArchiveEntry(basePath
+//                    + dir.getName() + PATH);
+//
+//            taos.putArchiveEntry(entry);
+//            taos.closeArchiveEntry();
         }
 
         for (File file : files) {
@@ -179,8 +177,8 @@ public class TarUtils {
         TarArchiveEntry entry = new TarArchiveEntry(dir + file.getName());
 
         entry.setSize(file.length());
-        Log.i(TAG, "archiveFile modified: " + file.lastModified());
         entry.setModTime(file.lastModified());
+        entry.getModTime();
 
         taos.putArchiveEntry(entry);
         taos.setLongFileMode(LONGFILE_GNU);
@@ -294,8 +292,10 @@ public class TarUtils {
             // 文件检查
             fileProber(dirFile);
 
+            TarArchiveEntry currentEntry = tais.getCurrentEntry();
             if (entry.isDirectory()) {
                 dirFile.mkdirs();
+                dirFile.setLastModified(currentEntry.getModTime().getTime());
             } else {
                 dearchiveFile(dirFile, tais);
             }
@@ -319,7 +319,6 @@ public class TarUtils {
                 new FileOutputStream(destFile));
 
         TarArchiveEntry entry = tais.getCurrentEntry();
-        Log.i(TAG, "DeArchiveFile Last Modified Time: " + entry.getModTime().getTime());
         int count;
         byte data[] = new byte[BUFFER];
         while ((count = tais.read(data, 0, BUFFER)) != -1) {
