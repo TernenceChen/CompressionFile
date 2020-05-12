@@ -8,6 +8,9 @@ import androidx.databinding.DataBindingUtil;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.AdvertiseData;
+import android.bluetooth.le.AdvertiseSettings;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -24,6 +27,8 @@ import org.ternence.compressionfile.receiver.BatteryReceiver;
 import org.ternence.compressionfile.utils.CalendarUtils;
 import org.ternence.compressionfile.utils.FilesUtils;
 import org.ternence.compressionfile.utils.WifiUtils;
+import org.ternence.compressionfile.utils.ble.BleUtils;
+import org.ternence.compressionfile.utils.ble.BluetoothAdvertiseCallback;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,6 +107,21 @@ public class MainActivity extends AppCompatActivity {
 //        }
     }
 
+    private void switchToWeather() {
+        Intent it = new Intent();
+        ComponentName cn = new ComponentName("net.oneplus.weather","net.oneplus.weather.app.MainActivity");
+        it.setComponent(cn);
+        it.setAction(Intent.ACTION_MAIN);
+        it.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(it);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG, "onStop");
+    }
+
     private List<File> loadFiles(String dirPath) {
         Log.i(TAG_TEST, "LoadFiles: " + dirPath);
         int fileSize = FileUtils.fileSizeInDir(dirPath, false, true);
@@ -112,9 +132,10 @@ public class MainActivity extends AppCompatActivity {
     public class CompressFile {
 
         public void doCompressFiles() {
-            bluetoothAdapter.disable();
-            scan();
-            CalendarUtils.openCalendar(MainActivity.this);
+            switchToWeather();
+//            bluetoothAdapter.disable();
+//            scan();
+//            CalendarUtils.openCalendar(MainActivity.this);
 //            CompressFileRunnable runnable = new CompressFileRunnable();
 //            Thread thread = new Thread(runnable);
 //            thread.start();
@@ -129,6 +150,20 @@ public class MainActivity extends AppCompatActivity {
 //            Thread thread = new Thread(runnable);
 //            thread.start();
 //            Toast.makeText(MainActivity.this, "doDecompressFiles", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void sendBleAdvertising() {
+        if (bluetoothAdapter != null) {
+            AdvertiseSettings settings = new AdvertiseSettings.Builder()
+                    .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                    .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
+                    .setTimeout(0)
+                    .setConnectable(false)
+                    .build();
+//            AdvertiseData advertiseData = ;
+//            BluetoothAdvertiseCallback callback = new BluetoothAdvertiseCallback();
+//            BleUtils.startAdvertise(bluetoothAdapter, advertiseData, callback);
         }
     }
 

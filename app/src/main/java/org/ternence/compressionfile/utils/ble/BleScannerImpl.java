@@ -23,6 +23,6 @@ public class BleScannerImpl {
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
         }
-    }
+    };
 
 }
